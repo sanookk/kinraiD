@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>วันนี้กินอะไรดี? - สุ่มอาหาร เครื่องดื่ม และขนมหวาน</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+        }
+        body {
+            background-color: #fffdfa;
+            background-image: radial-gradient(#fde047 0.75px, transparent 0.75px), radial-gradient(#fde047 0.75px, #fffdfa 0.75px);
+            background-size: 26px 26px;
+            background-position: 0 0, 13px 13px;
+        }
+        .spin-blur {
+            animation: spinBlur 0.07s infinite linear;
+        }
+        @keyframes spinBlur {
+            0% { transform: translateY(-8px) scale(0.98); opacity: 0.75; filter: blur(1.2px); }
+            50% { transform: translateY(8px) scale(1.02); opacity: 0.95; filter: blur(0px); }
+            100% { transform: translateY(-8px) scale(0.98); opacity: 0.75; filter: blur(1.2px); }
+        }
+        .glow-orange {
+            box-shadow: 0 0 25px -4px rgba(249, 115, 22, 0.4);
+        }
+        .glow-emerald {
+            box-shadow: 0 0 25px -4px rgba(16, 185, 129, 0.4);
+        }
+        .glow-pink {
+            box-shadow: 0 0 25px -4px rgba(236, 72, 153, 0.4);
+        }
+        .gradient-card-food {
+            background: linear-gradient(135deg, #ffffff 0%, #fffdf5 100%);
+        }
+        .gradient-card-drink {
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+        }
+        .gradient-card-dessert {
+            background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between selection:bg-orange-200">
+
+    <header class="w-full bg-white/95 backdrop-blur-md border-b border-orange-100 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 text-white w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-md shadow-orange-200">
+                    🍱
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600 bg-clip-text text-transparent leading-tight">
+                        วันนี้กินอะไรดี?
+                    </h1>
+                    <p class="text-[11px] sm:text-xs text-slate-500 font-normal">สุ่มอาหาร เครื่องดื่ม และขนมหวาน 150+ เมนู</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Sound Toggle Button -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition flex items-center justify-center border border-orange-200/80" title="เปิด/ปิด เสียง">
+                    <i id="soundIcon" class="fas fa-volume-up text-base sm:text-lg"></i>
+                </button>
+                <!-- Manage Menu Button -->
+                <button onclick="openManageModal()" class="px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-medium text-xs sm:text-sm transition flex items-center gap-2 shadow-sm shadow-orange-200">
+                    <i class="fas fa-tasks"></i>
+                    <span class="hidden sm:inline">จัดการเมนู</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-grow flex flex-col items-center">
+        
+        <!-- Mode Selector Switcher (Major Category Selector) -->
+        <section class="w-full mb-5 flex flex-wrap items-center justify-center gap-2">
+            <button id="modeBtnFood" onclick="setMode('food')" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 border bg-orange-500 text-white border-orange-500 shadow-orange-200">
+                <span>🍽️</span> สุ่มอาหาร
+            </button>
+            <button id="modeBtnDrink" onclick="setMode('drink')" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 border bg-white text-slate-700 border-slate-200 hover:bg-emerald-50">
+                <span>🥤</span> สุ่มเครื่องดื่ม
+            </button>
+            <button id="modeBtnDessert" onclick="setMode('dessert')" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 border bg-white text-slate-700 border-slate-200 hover:bg-pink-50">
+                <span>🍨</span> สุ่มขนมหวาน
+            </button>
+            <button id="modeBtnCombo" onclick="setMode('combo')" class="px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 border bg-white text-slate-700 border-slate-200 hover:bg-amber-50">
+                <span>✨</span> สุ่มครบเซ็ต (อาหาร+น้ำ+ขนม)
+            </button>
+        </section>
+
+        <!-- Sub-Category Filter Section (Strictly dynamically bound to selected Major Mode) -->
+        <section id="subCategoryFilterCard" class="w-full mb-6 bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-orange-100 transition-all">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <span id="subCatTitle" class="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-orange-900">
+                        <i class="fas fa-utensils text-orange-500"></i> หมวดย่อยของอาหารที่ต้องการสุ่ม
+                    </span>
+                    <span id="activeCountBadge" class="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-medium border border-amber-200">
+                        กำลังโหลด...
+                    </span>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="selectAllActiveSubCats()" class="text-xs text-orange-600 hover:text-orange-800 font-medium underline">
+                        <i class="fas fa-check-double"></i> เลือกทั้งหมด
+                    </button>
+                    <span class="text-slate-300">|</span>
+                    <button onclick="clearAllActiveSubCats()" class="text-xs text-slate-400 hover:text-slate-600 font-medium underline">
+                        ล้างค่า
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-2 w-full" id="subCategoryChipContainer">
+                <!-- Dynamically populated chips based on current Major Category Mode -->
+            </div>
+        </section>
+
+        <!-- Slot Cards Container -->
+        <section class="w-full">
+            <div id="slotGridContainer" class="grid grid-cols-1 gap-4 w-full">
+                
+                <!-- Slot 1: Primary Slot Card (Food / Drink / Dessert) -->
+                <div id="mainSlotCard" class="gradient-card-food rounded-3xl p-6 sm:p-8 shadow-xl shadow-orange-100/80 border-2 border-orange-200 relative overflow-hidden flex flex-col items-center text-center transition-all duration-300">
+                    <div id="mainSlotBlurBg" class="absolute -top-10 -right-10 w-32 h-32 bg-amber-200/40 rounded-full blur-2xl pointer-events-none"></div>
+                    
+                    <div id="slot1Badge" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-200 mb-2">
+                        🍳 อาหารจานหลัก
+                    </div>
+
+                    <div class="relative my-2 min-h-[150px] flex items-center justify-center w-full">
+                        <div id="slot1CardInner" class="transition-all transform duration-200 flex flex-col items-center">
+                            <div id="slot1Emoji" class="text-7xl sm:text-8xl mb-2 drop-shadow-sm">
+                                😋
+                            </div>
+                            <h2 id="slot1Title" class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide px-2">
+                                มื้อนี้กินอะไรดีนะ?
+                            </h2>
+                            <p id="slot1Description" class="text-xs sm:text-sm text-slate-500 mt-2 max-w-xs sm:max-w-md">
+                                เลือกหมวดย่อยที่ต้องการแล้วกดปุ่ม "สุ่มเมนูเลย!"
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Single Card Map Link -->
+                    <div id="slot1MapBox" class="mt-2 w-full max-w-sm hidden">
+                        <a id="slot1MapBtn" href="#" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 font-medium text-xs border border-orange-200 flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-map-marker-alt text-red-500"></i>
+                            <span id="slot1MapText">ค้นหาร้านใกล้ฉันบน Google Maps</span>
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Slot 2: Drink Combo Slot Card (Visible in Combo mode) -->
+                <div id="drinkSlotCard" class="gradient-card-drink rounded-3xl p-6 sm:p-8 shadow-xl shadow-emerald-100/80 border-2 border-emerald-200 relative overflow-hidden hidden flex-col items-center text-center transition-all duration-300">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl pointer-events-none"></div>
+                    
+                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-200 mb-2">
+                        🥤 เครื่องดื่มสดชื่น
+                    </div>
+
+                    <div class="relative my-2 min-h-[150px] flex items-center justify-center w-full">
+                        <div id="drinkCardInner" class="transition-all transform duration-200 flex flex-col items-center">
+                            <div id="drinkEmoji" class="text-7xl sm:text-8xl mb-2 drop-shadow-sm">
+                                🥤
+                            </div>
+                            <h2 id="drinkTitle" class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide px-2">
+                                ดื่มอะไรคู่กันดี?
+                            </h2>
+                            <p id="drinkDescription" class="text-xs sm:text-sm text-slate-500 mt-2 max-w-xs sm:max-w-md">
+                                เครื่องดื่มคู่หูดับกระหาย
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="drinkMapBox" class="mt-2 w-full max-w-sm hidden">
+                        <a id="drinkMapBtn" href="#" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-xs border border-emerald-200 flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-mug-hot text-amber-700"></i>
+                            <span id="drinkMapText">ค้นหาร้านเครื่องดื่มใกล้ฉัน</span>
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Slot 3: Dessert Combo Slot Card (Visible in Combo mode) -->
+                <div id="dessertSlotCard" class="gradient-card-dessert rounded-3xl p-6 sm:p-8 shadow-xl shadow-pink-100/80 border-2 border-pink-200 relative overflow-hidden hidden flex-col items-center text-center transition-all duration-300">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-200/40 rounded-full blur-2xl pointer-events-none"></div>
+                    
+                    <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold bg-pink-100 text-pink-900 border border-pink-200 mb-2">
+                        🍨 ของหวานล้างปาก
+                    </div>
+
+                    <div class="relative my-2 min-h-[150px] flex items-center justify-center w-full">
+                        <div id="dessertCardInner" class="transition-all transform duration-200 flex flex-col items-center">
+                            <div id="dessertEmoji" class="text-7xl sm:text-8xl mb-2 drop-shadow-sm">
+                                🍰
+                            </div>
+                            <h2 id="dessertTitle" class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-wide px-2">
+                                ขนมหวานปิดท้าย?
+                            </h2>
+                            <p id="dessertDescription" class="text-xs sm:text-sm text-slate-500 mt-2 max-w-xs sm:max-w-md">
+                                เมนูขนมหวานล้างปากแสนอร่อย
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="dessertMapBox" class="mt-2 w-full max-w-sm hidden">
+                        <a id="dessertMapBtn" href="#" target="_blank" class="w-full py-2.5 px-3 rounded-xl bg-pink-50 hover:bg-pink-100 text-pink-800 font-medium text-xs border border-pink-200 flex items-center justify-center gap-2 transition">
+                            <i class="fas fa-cookie-bite text-pink-600"></i>
+                            <span id="dessertMapText">ค้นหาร้านของหวานใกล้ฉัน</span>
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Spin Control Buttons -->
+            <div class="mt-6 w-full flex flex-col items-center">
+                <!-- Primary Spin Button -->
+                <button id="spinBtn" onclick="startRandomizer()" class="w-full max-w-md py-4 px-8 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:via-amber-600 hover:to-orange-700 text-white font-bold text-lg sm:text-xl shadow-lg shadow-orange-500/30 transform active:scale-95 transition-all flex items-center justify-center gap-2 glow-orange">
+                    <i id="spinBtnIcon" class="fas fa-dice text-2xl"></i>
+                    <span id="spinBtnText">สุ่มเมนูเลย!</span>
+                </button>
+
+                <!-- Result Decision Actions -->
+                <div id="resultActionGroup" class="mt-4 w-full max-w-md hidden flex-col sm:flex-row gap-2.5 transition-all">
+                    <button onclick="startRandomizer()" class="flex-1 py-3 px-4 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold text-sm transition flex items-center justify-center gap-2 border border-orange-200">
+                        <i class="fas fa-rotate"></i>
+                        <span>สุ่มอีกรอบ</span>
+                    </button>
+                    <button onclick="confirmChoice()" class="flex-1 py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-md shadow-emerald-200 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-check-circle"></i>
+                        <span>ตกลง เอาเมนูนี้!</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            
+            <!-- Quick Shuffle Banner -->
+            <div class="md:col-span-1 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 rounded-3xl p-5 text-white flex flex-col justify-between shadow-md relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-7xl opacity-20 pointer-events-none">🍰</div>
+                <div>
+                    <span class="bg-white/20 text-white text-[11px] px-2.5 py-1 rounded-full font-medium backdrop-blur-sm">ปุ่มทางเลือกด่วน</span>
+                    <h3 class="text-base font-bold mt-2">คิดไม่ออกจริงๆ?</h3>
+                    <p class="text-xs text-amber-100 mt-1">สุ่มครบเซ็ตทันที (อาหาร + น้ำ + ขนมหวาน)</p>
+                </div>
+                <button onclick="quickSelectComboAndSpin()" class="mt-4 w-full py-2.5 px-4 rounded-xl bg-white text-orange-600 font-bold text-xs sm:text-sm hover:bg-orange-50 transition shadow-sm text-center active:scale-95">
+                    ⚡ สุ่มจัดเต็มครบ 3 อย่างด่วน!
+                </button>
+            </div>
+
+            <!-- History Log Box -->
+            <div class="md:col-span-2 bg-white rounded-3xl p-5 shadow-sm border border-orange-100 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fas fa-history text-amber-500"></i> ประวัติการสุ่มล่าสุด
+                        </h3>
+                        <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-rose-500 transition">
+                            ล้างประวัติ
+                        </button>
+                    </div>
+                    <div id="historyList" class="flex flex-wrap gap-2 min-h-[50px] items-center">
+                        <span class="text-xs text-slate-400 italic">ยังไม่มีประวัติการสุ่ม</span>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-3 text-right">บันทึก 6 รายการล่าสุดลงในเครื่องของคุณ</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full bg-white/80 border-t border-orange-100 py-4 mt-8">
+        <div class="max-w-5xl mx-auto px-4 text-center text-xs text-slate-500">
+            <p>❤️ วันนี้กินอะไรดี? - สุ่มเมนูอาหาร เครื่องดื่ม และขนมหวาน</p>
+        </div>
+    </footer>
+
+    <!-- Modal HTML Structure -->
+    <div id="manageModal" onclick="if(event.target === this) closeManageModal()" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden transform scale-95 transition-all duration-300" id="manageModalCard">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 bg-orange-50 border-b border-orange-100 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-orange-500 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base sm:text-lg leading-snug">จัดการรายการเมนู</h3>
+                        <p class="text-[11px] text-slate-500">เพิ่ม/ลบ หรือเปิด-ปิดเมนูในแต่ละหมวดใหญ่และหมวดย่อย</p>
+                    </div>
+                </div>
+                <button onclick="closeManageModal()" class="w-8 h-8 rounded-full bg-white text-slate-400 hover:text-slate-600 flex items-center justify-center border border-slate-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content -->
+            <div class="p-6 overflow-y-auto flex-grow">
+                
+                <!-- Add New Item Form -->
+                <details class="mb-6 bg-slate-50 rounded-2xl p-4 border border-slate-200/80 group">
+                    <summary class="font-semibold text-slate-700 text-sm cursor-pointer list-none flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-plus-circle text-orange-500"></i> เพิ่มเมนูใหม่ของคุณเอง
+                        </span>
+                        <i class="fas fa-chevron-down text-slate-400 group-open:rotate-180 transition-transform text-xs"></i>
+                    </summary>
+                    <form id="addMenuForm" onsubmit="handleAddNewMenu(event)" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-600 mb-1">หมวดใหญ่ <span class="text-rose-500">*</span></label>
+                            <div class="flex gap-2">
+                                <button type="button" id="addTypeFoodBtn" onclick="setAddMenuMajorType('food')" class="flex-1 py-1.5 px-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1 bg-orange-500 text-white border-orange-500 shadow-sm">
+                                    🍽️ อาหาร
+                                </button>
+                                <button type="button" id="addTypeDrinkBtn" onclick="setAddMenuMajorType('drink')" class="flex-1 py-1.5 px-2.5 rounded-xl border text-xs transition flex items-center justify-center gap-1 bg-white text-slate-600 border-slate-200 hover:bg-slate-50 font-normal">
+                                    🥤 เครื่องดื่ม
+                                </button>
+                                <button type="button" id="addTypeDessertBtn" onclick="setAddMenuMajorType('dessert')" class="flex-1 py-1.5 px-2.5 rounded-xl border text-xs transition flex items-center justify-center gap-1 bg-white text-slate-600 border-slate-200 hover:bg-slate-50 font-normal">
+                                    🍨 ขนมหวาน
+                                </button>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-600 mb-1">ชื่อเมนู <span class="text-rose-500">*</span></label>
+                            <input type="text" id="newTitle" required placeholder="เช่น ราเมงต้มยำหมูชาชู" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-orange-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-600 mb-1">หมวดย่อย <span class="text-rose-500">*</span></label>
+                            <select id="newSubCategorySelect" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-orange-500 outline-none text-xs">
+                                <!-- Options dynamically rendered -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">อิโมจิ (Emoji)</label>
+                            <input type="text" id="newEmoji" placeholder="เช่น 🍜" maxlength="4" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-orange-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">คำอธิบายสั้น</label>
+                            <input type="text" id="newTag" placeholder="เช่น รสเข้มข้นจัดจ้าน" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-orange-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-2 mt-1">
+                            <button type="submit" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition shadow-sm">
+                                บันทึกเมนูใหม่
+                            </button>
+                        </div>
+                    </form>
+                </details>
+
+                <!-- Filter & Search in Manage List -->
+                <div class="flex flex-col gap-3 mb-4">
+                    <!-- Major Category Switcher inside Modal -->
+                    <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl" id="manageMajorTypeTabs">
+                        <!-- Rendered dynamically -->
+                    </div>
+
+                    <!-- Sub-Category Filter Tabs in Modal -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs scrollbar-none" id="manageSubCategoryTabs">
+                        <!-- Rendered dynamically -->
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-2 justify-between items-center">
+                        <div class="relative w-full sm:w-64">
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="searchMenuInput" oninput="renderManageList()" placeholder="ค้นหาเมนู..." class="w-full pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-orange-400">
+                        </div>
+                        <button onclick="resetDefaultMenu()" class="text-xs text-rose-500 hover:text-rose-700 underline font-medium self-end sm:self-auto">
+                            <i class="fas fa-undo"></i> คืนค่าเมนูเริ่มต้นทั้งหมด (150+ เมนู)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- List Container Grouped by Sub-Category -->
+                <div id="manageMenuList" class="space-y-4 max-h-80 overflow-y-auto pr-1">
+                    <!-- Dynamic List Grouped by Sub-Category -->
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeManageModal()" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium text-sm transition">
+                    เสร็จสิ้น
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-800 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i id="toastIcon" class="fas fa-check-circle text-emerald-400 text-lg"></i>
+        <span id="toastMessage" class="text-sm font-medium">ข้อความแจ้งเตือน</span>
+    </div>
+
+    <script>
+        // Major Categories Definition
+        const MAJOR_TYPES = {
+            food: { id: 'food', name: 'อาหาร', emoji: '🍽️', color: 'orange' },
+            drink: { id: 'drink', name: 'เครื่องดื่ม', emoji: '🥤', color: 'emerald' },
+            dessert: { id: 'dessert', name: 'ขนมหวาน', emoji: '🍨', color: 'pink' }
+        };
+
+        // Sub Categories Grouped by Major Category
+        const SUB_CATEGORIES = {
+            food: [
+                { id: 'food_rice', name: 'ข้าว / จานเดียว', emoji: '🍳' },
+                { id: 'food_noodle', name: 'เส้น / ก๋วยเตี๋ยว', emoji: '🍜' },
+                { id: 'food_soup_stir', name: 'ต้ม / แกง / ผัด', emoji: '🥘' },
+                { id: 'food_isan_salad', name: 'ยำ / อาหารอีสาน', emoji: '🥗' },
+                { id: 'food_japanese', name: 'อาหารญี่ปุ่น', emoji: '🍱' },
+                { id: 'food_chinese', name: 'อาหารจีน', emoji: '🥟' },
+                { id: 'food_vegan', name: 'อาหารเจ / มังสวิรัติ', emoji: '🥬' },
+                { id: 'food_fastfood', name: 'ทานเล่น / Fast Food', emoji: '🍔' },
+                { id: 'food_clean', name: 'อาหารคลีน / สุขภาพ', emoji: '🌱' }
+            ],
+            drink: [
+                { id: 'drink_coffee', name: 'กาแฟ', emoji: '☕' },
+                { id: 'drink_tea', name: 'ชา & ชานม', emoji: '🧋' },
+                { id: 'drink_juice', name: 'น้ำผลไม้ & สมูทตี้', emoji: '🍊' },
+                { id: 'drink_milk', name: 'นม & โกโก้', emoji: '🥛' },
+                { id: 'drink_soda', name: 'น้ำอัดลม & โซดา', emoji: '🥤' },
+                { id: 'drink_herbal', name: 'สมุนไพร & สุขภาพ', emoji: '🌿' }
+            ],
+            dessert: [
+                { id: 'dessert_thai', name: 'ขนมไทย & ข้าวเหนียว', emoji: '🥭' },
+                { id: 'dessert_icecream', name: 'ไอศกรีม & บิงซู', emoji: '🍧' },
+                { id: 'dessert_bakery', name: 'เบเกอรี่ & เค้ก', emoji: '🍰' },
+                { id: 'dessert_toast', name: 'โรตี & โทสต์ & ปังปิ้ง', emoji: '🍞' },
+                { id: 'dessert_snack', name: 'ขนมทานเล่น & ช็อกโกแลต', emoji: '🍫' }
+            ]
+        };
+
+        // Master Database (Initial default entries)
+        const DEFAULT_DATABASE = [
+            // --- FOOD (อาหาร) ---
+            // 1. ข้าว / จานเดียว (food_rice)
+            { id: 'food_1', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวกะเพราหมูสับไข่ดาว', emoji: '🍳', tag: 'เมนูกันตาย รสเผ็ดจัดจ้าน', enabled: true },
+            { id: 'food_2', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวกะเพราหมูกรอบ', emoji: '🥓', tag: 'หมูกรอบกรอบนอกนุ่มใน', enabled: true },
+            { id: 'food_3', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวผัดหมู / ไก่ / กุ้ง', emoji: '🍚', tag: 'หอมกลิ่นกระทะ บีบมะนาวสด', enabled: true },
+            { id: 'food_4', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวหมูกระเทียมพริกไทย', emoji: '🧄', tag: 'หมูนุ่มหอมกระเทียมเจียว', enabled: true },
+            { id: 'food_5', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวขาหมูไข่พะโล้', emoji: '🍖', tag: 'เนื้อนุ่มหนังเด้ง พร้อมผักกาดดอง', enabled: true },
+            { id: 'food_6', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวหมูแดงหมูกรอบ', emoji: '🥓', tag: 'กุนเชียงและไข่ต้มยางมะตูม', enabled: true },
+            { id: 'food_7', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวหน้าเป็ดย่าง', emoji: '🦆', tag: 'เป็ดหนังกรอบเนื้อนุ่ม', enabled: true },
+            { id: 'food_8', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวมันไก่ต้ม / ทอด', emoji: '🍗', tag: 'ข้าวมันหอมนุ่ม น้ำจิ้มเด็ด', enabled: true },
+            { id: 'food_9', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวไข่เจียวทรงเครื่อง', emoji: '🍳', tag: 'ฟูกรอบ ใส่หมูสับต้นหอม', enabled: true },
+            { id: 'food_10', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวคลุกกะปิเครื่องแน่น', emoji: '🍱', tag: 'หมูหวาน มะม่วงสับ ชะอมทอด', enabled: true },
+            { id: 'food_11', majorType: 'food', subCategory: 'food_rice', title: 'ข้าวต้มหมูสับ / กุ้งสด', emoji: '🍲', tag: 'ซุปร้อนๆ ซดคล่องคอ', enabled: true },
+
+            // 2. เส้น / ก๋วยเตี๋ยว (food_noodle)
+            { id: 'food_12', majorType: 'food', subCategory: 'food_noodle', title: 'ก๋วยเตี๋ยวเรือน้ำตกเข้มข้น', emoji: '🍜', tag: 'ซุปเข้มข้น หมูนุ่มลูกชิ้นเด็ด', enabled: true },
+            { id: 'food_13', majorType: 'food', subCategory: 'food_noodle', title: 'ก๋วยเตี๋ยวต้มยำมะนาวสด', emoji: '🍋', tag: 'เปรี้ยวเผ็ดหวานลงตัว', enabled: true },
+            { id: 'food_14', majorType: 'food', subCategory: 'food_noodle', title: 'ผัดไทยกุ้งสด', emoji: '🦐', tag: 'เส้นจันทน์นุ่ม กุ้งตัวโต', enabled: true },
+            { id: 'food_15', majorType: 'food', subCategory: 'food_noodle', title: 'ผัดซีอิ๊วหมู / ไก่', emoji: '🍝', tag: 'หอมกลิ่นไหม้กระทะ', enabled: true },
+            { id: 'food_16', majorType: 'food', subCategory: 'food_noodle', title: 'ก๋วยจั๊บน้ำข้น / น้ำใส', emoji: '🍲', tag: 'เครื่องแน่น หมูกรอบไข่ต้ม', enabled: true },
+            { id: 'food_17', majorType: 'food', subCategory: 'food_noodle', title: 'ราดหน้าหมูนุ่มยอดคะน้า', emoji: '🍲', tag: 'น้ำราดเหนียวนุ่ม หมูนุ่ม', enabled: true },
+            { id: 'food_18', majorType: 'food', subCategory: 'food_noodle', title: 'ขนมจีนน้ำยาป่า / น้ำยากะทิ', emoji: '🥗', tag: 'แนมผักสดพื้นบ้านจุใจ', enabled: true },
+            { id: 'food_19', majorType: 'food', subCategory: 'food_noodle', title: 'สปาเกตตีคาโบนาร่า', emoji: '🧀', tag: 'ครีมซอสชีสเข้มข้น เบคอนกรอบ', enabled: true },
+
+            // 3. ต้ม / แกง / ผัด (food_soup_stir)
+            { id: 'food_20', majorType: 'food', subCategory: 'food_soup_stir', title: 'ต้มยำกุ้งน้ำข้น', emoji: '🍲', tag: 'ซุปรสต้มยำแท้ มะนาวสด', enabled: true },
+            { id: 'food_21', majorType: 'food', subCategory: 'food_soup_stir', title: 'แกงเขียวหวานไก่ยอดมะพร้าว', emoji: '🥘', tag: 'กะทิสดหอมพริกแกง', enabled: true },
+            { id: 'food_22', majorType: 'food', subCategory: 'food_soup_stir', title: 'แกงส้มชะอมกุ้งสด', emoji: '🍤', tag: 'ไข่เจียวชะอม ซุปแกงส้มเข้มข้น', enabled: true },
+            { id: 'food_23', majorType: 'food', subCategory: 'food_soup_stir', title: 'ผัดผักบุ้งไฟแดง', emoji: '🌱', tag: 'เต้าเจี้ยวหอม พริกสดผัดไฟแรง', enabled: true },
+            { id: 'food_24', majorType: 'food', subCategory: 'food_soup_stir', title: 'หมูกระทะ / ชาบูบุฟเฟต์', emoji: '🥩', tag: 'สายกินต้องจัด นัดเพื่อนเลย', enabled: true },
+            { id: 'food_25', majorType: 'food', subCategory: 'food_soup_stir', title: 'พะแนงหมู / ไก่', emoji: '🍛', tag: 'พริกแกงเข้มข้น หอมใบมะกรูด', enabled: true },
+
+            // 4. ยำ / อาหารอีสาน (food_isan_salad)
+            { id: 'food_26', majorType: 'food', subCategory: 'food_isan_salad', title: 'ส้มตำไทย / ปูปลาร้า', emoji: '🥗', tag: 'มะละกอกรอบ รสแซ่บสะเด็ด', enabled: true },
+            { id: 'food_27', majorType: 'food', subCategory: 'food_isan_salad', title: 'ลาบหมูสับ / ไก่สับ', emoji: '🌶️', tag: 'หอมข้าวคั่ว พริกปอนสด', enabled: true },
+            { id: 'food_28', majorType: 'food', subCategory: 'food_isan_salad', title: 'น้ำตกหมูนุ่ม', emoji: '🥩', tag: 'หมูนุ่มย่าง หอมข้าวคั่ว', enabled: true },
+            { id: 'food_29', majorType: 'food', subCategory: 'food_isan_salad', title: 'ไก่ย่างวิเชียรบุรี', emoji: '🍗', tag: 'หนังกรอบ เนื้อนุ่ม น้ำจิ้มแจ่ว', enabled: true },
+            { id: 'food_30', majorType: 'food', subCategory: 'food_isan_salad', title: 'ต้มแซ่บกระดูกอ่อน', emoji: '🍲', tag: 'เปรี้ยวเผ็ด กระดูกเปื่อย', enabled: true },
+            { id: 'food_31', majorType: 'food', subCategory: 'food_isan_salad', title: 'ยำวุ้นเส้นโบราณ', emoji: '🥗', tag: 'หมูสับ กุ้งแห้ง ถั่วทอด', enabled: true },
+
+            // 5. อาหารญี่ปุ่น (food_japanese)
+            { id: 'food_32', majorType: 'food', subCategory: 'food_japanese', title: 'ราเมนหมูชาชู', emoji: '🍜', tag: 'น้ำซุปกระดูกหมูเข้มข้น', enabled: true },
+            { id: 'food_33', majorType: 'food', subCategory: 'food_japanese', title: 'ข้าวหน้าแซลมอนย่างซีอิ๊ว', emoji: '🍱', tag: 'แซลมอนย่างสุกพอดี ซอสหวาน', enabled: true },
+            { id: 'food_34', majorType: 'food', subCategory: 'food_japanese', title: 'ข้าวหน้าเนื้อกิวด้ง (Gyudon)', emoji: '🥩', tag: 'เนื้อสไลซ์ต้มซอสโชยุหอมใหญ่', enabled: true },
+            { id: 'food_35', majorType: 'food', subCategory: 'food_japanese', title: 'ข้าวหน้าหมูทอดทงคัตสึ', emoji: '🍱', tag: 'หมูทอดกรอบ ราดไข่และซอส', enabled: true },
+            { id: 'food_36', majorType: 'food', subCategory: 'food_japanese', title: 'ชุดซูชิ & ซาชิมิสดรวม', emoji: '🍣', tag: 'ปลาสดเกรดพรีเมียม', enabled: true },
+
+            // 6. อาหารจีน (food_chinese)
+            { id: 'food_37', majorType: 'food', subCategory: 'food_chinese', title: 'ติ่มซำ / ขนมจีบกุ้งจักรพรรดิ', emoji: '🥟', tag: 'กุ้งตัวโต นึ่งร้อนๆ', enabled: true },
+            { id: 'food_38', majorType: 'food', subCategory: 'food_chinese', title: 'ซาลาเปาไส้ไหล / หมูสับ', emoji: '🥠', tag: 'แป้งนุ่มฟู ไส้แน่นเยิ้ม', enabled: true },
+            { id: 'food_39', majorType: 'food', subCategory: 'food_chinese', title: 'เต้าหู้มาโบเสฉวน (Mapo Tofu)', emoji: '🥘', tag: 'เต้าหู้นุ่ม ซอสหม่าล่าเผ็ดชา', enabled: true },
+            { id: 'food_40', majorType: 'food', subCategory: 'food_chinese', title: 'เป็ดย่างฮ่องกง', emoji: '🦆', tag: 'หนังกรอบละมุน ซอสหวาน', enabled: true },
+
+            // 7. อาหารเจ / มังสวิรัติ (food_vegan)
+            { id: 'food_41', majorType: 'food', subCategory: 'food_vegan', title: 'ผัดไทยเจเต้าหู้สด', emoji: '🍜', tag: 'รสกลมกล่อม อร่อยได้บุญ', enabled: true },
+            { id: 'food_42', majorType: 'food', subCategory: 'food_vegan', title: 'ต้มยำเห็ดรวมเจ', emoji: '🍄', tag: 'เห็ด3อย่าง เปรี้ยวเผ็ดสมุนไพร', enabled: true },
+            { id: 'food_43', majorType: 'food', subCategory: 'food_vegan', title: 'ผัดกะเพราเต้าหู้เห็ดหอมเจ', emoji: '🍳', tag: 'เผ็ดจัดจ้านสไตล์เจ', enabled: true },
+
+            // 8. ทานเล่น / Fast Food (food_fastfood)
+            { id: 'food_44', majorType: 'food', subCategory: 'food_fastfood', title: 'พิซซ่าถาดใหญ่ชีสทะลัก', emoji: '🍕', tag: 'แป้งนุ่มชีสยืด สั่งปาร์ตี้', enabled: true },
+            { id: 'food_45', majorType: 'food', subCategory: 'food_fastfood', title: 'เบอร์เกอร์เนื้อ / หมูชีส', emoji: '🍔', tag: 'เบอร์เกอร์ชิ้นโต ชีสเยิ้ม', enabled: true },
+            { id: 'food_46', majorType: 'food', subCategory: 'food_fastfood', title: 'ไก่ทอดหาดใหญ่ / KFC', emoji: '🍗', tag: 'แป้งกรอบเนื้อฉ่ำ หอมเจียว', enabled: true },
+            { id: 'food_47', majorType: 'food', subCategory: 'food_fastfood', title: 'เฟรนช์ฟรายส์ดิปชีส', emoji: '🍟', tag: 'ทอดร้อนๆ กรอบนอกนุ่มใน', enabled: true },
+
+            // 9. อาหารคลีน / สุขภาพ (food_clean)
+            { id: 'food_48', majorType: 'food', subCategory: 'food_clean', title: 'สลัดอกไก่นุ่มซอสญี่ปุ่น', emoji: '🥗', tag: 'แคลอรีต่ำ อกไก่นุ่มฉ่ำ', enabled: true },
+            { id: 'food_49', majorType: 'food', subCategory: 'food_clean', title: 'สเต๊กปลาแซลมอนผักย่าง', emoji: '🐟', tag: 'ไขมันดี โปรตีนสูง', enabled: true },
+            { id: 'food_50', majorType: 'food', subCategory: 'food_clean', title: 'สลัดโรลปูอัด / กุ้งสด', emoji: '🌯', tag: 'คำพอดีคำ น้ำจิ้มซีฟู้ดคลีน', enabled: true },
+
+
+            // --- DRINKS (เครื่องดื่ม) ---
+            // กาแฟ (drink_coffee)
+            { id: 'drink_1', majorType: 'drink', subCategory: 'drink_coffee', title: 'อเมริกาโนเย็น (Iced Americano)', emoji: '☕', tag: 'เข้มข้น หอมเมล็ดคั่ว สดชื่นตื่นเต็มตา', enabled: true },
+            { id: 'drink_2', majorType: 'drink', subCategory: 'drink_coffee', title: 'ลาเต้เย็น (Iced Latte)', emoji: '☕', tag: 'นุ่มละมุน กลมกล่อมกาแฟผสมนมสด', enabled: true },
+            { id: 'drink_3', majorType: 'drink', subCategory: 'drink_coffee', title: 'กาแฟส้มสด (Orange Americano)', emoji: '🍊', tag: 'เปรี้ยวหวานจากน้ำส้มแท้ ตัดรสขม', enabled: true },
+            { id: 'drink_4', majorType: 'drink', subCategory: 'drink_coffee', title: 'กาแฟน้ำมะพร้าวสด', emoji: '🥥', tag: 'หอมหวานธรรมชาติ มะพร้าวสดแท้', enabled: true },
+            { id: 'drink_5', majorType: 'drink', subCategory: 'drink_coffee', title: 'เอสเพรสโซเย็นสไตล์ไทย', emoji: '☕', tag: 'หวานมัน เข้มข้นถึงใจ', enabled: true },
+
+            // ชา & ชานม (drink_tea)
+            { id: 'drink_6', majorType: 'drink', subCategory: 'drink_tea', title: 'ชาไทยเย็น / ชานมเย็น', emoji: '🧋', tag: 'หอมชาไทยโบราณ หวานมันกลมกล่อม', enabled: true },
+            { id: 'drink_7', majorType: 'drink', subCategory: 'drink_tea', title: 'ชานมไข่มุกไต้หวัน', emoji: '🧋', tag: 'ไข่มุกหนึบหนับ ชานมหอมละมุน', enabled: true },
+            { id: 'drink_8', majorType: 'drink', subCategory: 'drink_tea', title: 'ชาเขียวมัทฉะลาเต้', emoji: '🍵', tag: 'มัทฉะแท้เข้มข้น หอมกลิ่นชาเขียว', enabled: true },
+            { id: 'drink_9', majorType: 'drink', subCategory: 'drink_tea', title: 'ชาพีชสดชื่น (Iced Peach Tea)', emoji: '🍑', tag: 'หอมกลิ่นพีช เปรี้ยวหวานกำลังดี', enabled: true },
+            { id: 'drink_10', majorType: 'drink', subCategory: 'drink_tea', title: 'ชามัทฉะยูสุโซดา', emoji: '🍋', tag: 'เปรี้ยวซ่าหอมมัทฉะและส้มยูสุ', enabled: true },
+
+            // น้ำผลไม้ & สมูทตี้ (drink_juice)
+            { id: 'drink_11', majorType: 'drink', subCategory: 'drink_juice', title: 'น้ำส้มคั้นสด 100%', emoji: '🍊', tag: 'วิตามินซีสูง เปรี้ยวหวานสดชื่น', enabled: true },
+            { id: 'drink_12', majorType: 'drink', subCategory: 'drink_juice', title: 'น้ำมะพร้าวปั่นนมสด', emoji: '🥥', tag: 'หอมมัน นุ่มละมุนลิ้น', enabled: true },
+            { id: 'drink_13', majorType: 'drink', subCategory: 'drink_juice', title: 'สตรอว์เบอร์รีสมูทตี้', emoji: '🍓', tag: 'เปรี้ยวหวานเข้มข้น ปั่นละเอียด', enabled: true },
+            { id: 'drink_14', majorType: 'drink', subCategory: 'drink_juice', title: 'น้ำแตงโมปั่นสดชื่น', emoji: '🍉', tag: 'หวานเย็น ดับร้อนได้อย่างดี', enabled: true },
+
+            // นม & โกโก้ (drink_milk)
+            { id: 'drink_15', majorType: 'drink', subCategory: 'drink_milk', title: 'โกโก้เย็นเข้มข้น', emoji: '🍫', tag: 'โกโก้เข้มข้น สายช็อกโกแลตต้องรัก', enabled: true },
+            { id: 'drink_16', majorType: 'drink', subCategory: 'drink_milk', title: 'นมชมพู / นมเย็น', emoji: '🥛', tag: 'หวานหอมสไตล์วัยเยาว์', enabled: true },
+            { id: 'drink_17', majorType: 'drink', subCategory: 'drink_milk', title: 'ไมโลโรงเรียนเย็น', emoji: '🥤', tag: 'รสชาติเข้มข้นในทรงจำ', enabled: true },
+
+            // น้ำอัดลม & โซดา (drink_soda)
+            { id: 'drink_18', majorType: 'drink', subCategory: 'drink_soda', title: 'แดงมะนาวโซดา', emoji: '🥤', tag: 'เปรี้ยวหวานซ่า ดับร้อนทันใจ', enabled: true },
+            { id: 'drink_19', majorType: 'drink', subCategory: 'drink_soda', title: 'บลูฮาวายโซดา', emoji: '🍹', tag: 'สีสวยสดใส รสเปรี้ยวซ่าสดชื่น', enabled: true },
+
+            // สมุนไพร & สุขภาพ (drink_herbal)
+            { id: 'drink_20', majorType: 'drink', subCategory: 'drink_herbal', title: 'น้ำเก๊กฮวยเย็นตราหม้อดิน', emoji: '🌿', tag: 'หอมหวาน แก้ร้อนในกระหายน้ำ', enabled: true },
+            { id: 'drink_21', majorType: 'drink', subCategory: 'drink_herbal', title: 'น้ำอัญชันมะนาวสด', emoji: '🌺', tag: 'เปลี่ยนสีสวยงาม เปรี้ยวหวานลงตัว', enabled: true },
+
+
+            // --- DESSERTS (ขนมหวาน) ---
+            // 1. ขนมไทย & ข้าวเหนียว (dessert_thai)
+            { id: 'dessert_1', majorType: 'dessert', subCategory: 'dessert_thai', title: 'ข้าวเหนียวมะม่วงอกร้อง', emoji: '🥭', tag: 'มูนข้าวเหนียวหอมมัน มะม่วงหวาน', enabled: true },
+            { id: 'dessert_2', majorType: 'dessert', subCategory: 'dessert_thai', title: 'ข้าวเหนียวทุเรียนน้ำกะทิ', emoji: '🟡', tag: 'ทุเรียนหมอนทองราดกะทิเข้มข้น', enabled: true },
+            { id: 'dessert_3', majorType: 'dessert', subCategory: 'dessert_thai', title: 'ทับทิมกรอบมะพร้าวกะทิ', emoji: '🍨', tag: 'แห้วกรอบ กะทิอบควันเทียน', enabled: true },
+            { id: 'dessert_4', majorType: 'dessert', subCategory: 'dessert_thai', title: 'ลอดช่องวัดเจษฯ นมสด', emoji: '🟢', tag: 'เส้นลอดช่องเหนียวนุ่ม หอมน้ำตาลตโนด', enabled: true },
+            { id: 'dessert_5', majorType: 'dessert', subCategory: 'dessert_thai', title: 'บัวลอยนมสดไข่หวาน', emoji: '🥣', tag: 'แป้งเหนียวนุ่ม น้ำกะทินมสดหอมหวาน', enabled: true },
+            { id: 'dessert_6', majorType: 'dessert', subCategory: 'dessert_thai', title: 'เฉาก๊วยชากังราวเฉาก๊วยโบราณ', emoji: '🖤', tag: 'เฉาก๊วยหนึบหนับ โรยน้ำตาลอ้อย', enabled: true },
+
+            // 2. ไอศกรีม & บิงซู (dessert_icecream)
+            { id: 'dessert_7', majorType: 'dessert', subCategory: 'dessert_icecream', title: 'บิงซูสตรอว์เบอร์รีเกล็ดหิมะ', emoji: '🍧', tag: 'น้ำแข็งไสนุ่มละมุน สตรอว์เบอร์รีฉ่ำ', enabled: true },
+            { id: 'dessert_8', majorType: 'dessert', subCategory: 'dessert_icecream', title: 'บิงซูชาไทยเฉาก๊วย', emoji: '🍧', tag: 'ชาไทยเข้มข้น รสชาติไทยแท้', enabled: true },
+            { id: 'dessert_9', majorType: 'dessert', subCategory: 'dessert_icecream', title: 'ไอศกรีมกะทิสดเครื่องแน่น', emoji: '🍨', tag: 'ใส่ถั่ว ถั่วแดง ข้าวเหนียว', enabled: true },
+            { id: 'dessert_10', majorType: 'dessert', subCategory: 'dessert_icecream', title: 'ไอศกรีมช็อกโกแลตซันเดย์', emoji: '🍦', tag: 'ท็อปปิ้งวิปครีมและเชอร์รี', enabled: true },
+
+            // 3. เบเกอรี่ & เค้ก (dessert_bakery)
+            { id: 'dessert_11', majorType: 'dessert', subCategory: 'dessert_bakery', title: 'เค้กช็อกโกแลตหน้านิ่ม', emoji: '🍰', tag: 'เข้มข้นรสช็อกโกแลต เนื้อนุ่ม', enabled: true },
+            { id: 'dessert_12', majorType: 'dessert', subCategory: 'dessert_bakery', title: 'บาสก์ชีสเค้กหน้าไหม้', emoji: '🧁', tag: 'ชีสเน้นๆ หอมกลิ่นไหม้ละมุน', enabled: true },
+            { id: 'dessert_13', majorType: 'dessert', subCategory: 'dessert_bakery', title: 'บราวนี่ฉ่ำฟัดจ์หน้าฟิล์ม', emoji: '🍫', tag: 'หนึบหนับ ช็อกโกแลตเข้มข้น', enabled: true },
+            { id: 'dessert_14', majorType: 'dessert', subCategory: 'dessert_bakery', title: 'ครัวซองต์เนยสดอัลมอนด์', emoji: '🥐', tag: 'แป้งกรอบนอกนุ่มใน หอมเนยแท้', enabled: true },
+
+            // 4. โรตี & โทสต์ & ปังปิ้ง (dessert_toast)
+            { id: 'dessert_15', majorType: 'dessert', subCategory: 'dessert_toast', title: 'ฮันนี่โทสต์ไอศกรีมวานิลลา', emoji: '🍞', tag: 'ขนมปังอบเนยหอมๆ ราดน้ำผึ้ง', enabled: true },
+            { id: 'dessert_16', majorType: 'dessert', subCategory: 'dessert_toast', title: 'โรตีราดนมข้นช็อกโกแลต', emoji: '🥞', tag: 'แป้งกรอบนุ่ม ใส่ไข่กล้วยหอม', enabled: true },
+            { id: 'dessert_17', majorType: 'dessert', subCategory: 'dessert_toast', title: 'ปังปิ้งสังขยาใบเตยสด', emoji: '🍞', tag: 'สังขยาเนื้อเนียน หอมใบเตยแท้', enabled: true },
+            { id: 'dessert_18', majorType: 'dessert', subCategory: 'dessert_toast', title: 'ปังปิ้งเนยนมชีสเยิ้ม', emoji: '🥪', tag: 'ชีสยืด รสเค็มหวานลงตัว', enabled: true },
+
+            // 5. ขนมทานเล่น & ช็อกโกแลต (dessert_snack)
+            { id: 'dessert_19', majorType: 'dessert', subCategory: 'dessert_snack', title: 'วาฟเฟิลฮ่องกงกรอบนอกนุ่มใน', emoji: '🧇', tag: 'หอมกลิ่นนมเนย ทานเพลิน', enabled: true },
+            { id: 'dessert_20', majorType: 'dessert', subCategory: 'dessert_snack', title: 'โดนัทเคลือบน้ำตาลโบราณ', emoji: '🍩', tag: 'แป้งนุ่มฟู หวานกำลังดี', enabled: true }
+        ];
+
+        // State variables
+        let menuDatabase = [];
+        let currentMode = 'food'; // 'food', 'drink', 'dessert', 'combo'
+        
+        // Active selected sub-category IDs per Major Category
+        let selectedSubCats = {
+            food: SUB_CATEGORIES.food.map(s => s.id),
+            drink: SUB_CATEGORIES.drink.map(s => s.id),
+            dessert: SUB_CATEGORIES.dessert.map(s => s.id)
+        };
+
+        // Manage modal states
+        let manageMajorType = 'food'; // 'food', 'drink', 'dessert', 'all'
+        let manageSubCategoryFilter = 'ALL';
+        let addMenuMajorType = 'food';
+
+        let isSpinning = false;
+        let isSoundEnabled = true;
+        let randomHistory = [];
+
+        // Web Audio Synthesizer
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) audioCtx = new AudioContext();
+            }
+        }
+
+        function playBeepSound() {
+            if (!isSoundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400 + Math.random() * 200, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.05);
+            } catch(e) {}
+        }
+
+        function playWinFanfare() {
+            if (!isSoundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+            try {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime + idx * 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.1 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + idx * 0.1);
+                    osc.stop(audioCtx.currentTime + idx * 0.1 + 0.3);
+                });
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const icon = document.getElementById('soundIcon');
+            const btn = document.getElementById('soundToggleBtn');
+            if (isSoundEnabled) {
+                if (icon) icon.className = "fas fa-volume-up text-base sm:text-lg";
+                if (btn) btn.className = "p-2.5 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition flex items-center justify-center border border-orange-200/80";
+                showToast("เปิดเสียงเรียบร้อยแล้ว", "info");
+            } else {
+                if (icon) icon.className = "fas fa-volume-mute text-base sm:text-lg text-slate-400";
+                if (btn) btn.className = "p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-400 transition flex items-center justify-center border border-slate-200";
+                showToast("ปิดเสียงแล้ว", "info");
+            }
+        }
+
+        function loadDatabase() {
+            try {
+                const saved = localStorage.getItem('today_food_db_v5');
+                if (saved) {
+                    let parsed = JSON.parse(saved);
+                    // Ensure backward compatibility migration
+                    menuDatabase = parsed.map(item => {
+                        if (!item.majorType) {
+                            if (item.categories && item.categories.includes('เครื่องดื่ม / น้ำดื่ม')) {
+                                item.majorType = 'drink';
+                                item.subCategory = 'drink_soda';
+                            } else if (item.categories && item.categories.includes('ของหวาน / ขนม')) {
+                                item.majorType = 'dessert';
+                                item.subCategory = 'dessert_thai';
+                            } else {
+                                item.majorType = 'food';
+                                item.subCategory = 'food_rice';
+                            }
+                        }
+                        return item;
+                    });
+
+                    // Append missing default items
+                    DEFAULT_DATABASE.forEach(def => {
+                        if (!menuDatabase.some(m => m.id === def.id)) {
+                            menuDatabase.push(def);
+                        }
+                    });
+                } else {
+                    menuDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE));
+                }
+            } catch (e) {
+                menuDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE));
+            }
+
+            try {
+                const savedHistory = localStorage.getItem('today_food_history_v5');
+                if (savedHistory) randomHistory = JSON.parse(savedHistory);
+            } catch(e) { randomHistory = []; }
+        }
+
+        function saveDatabase() {
+            try {
+                localStorage.setItem('today_food_db_v5', JSON.stringify(menuDatabase));
+            } catch(e) {}
+            updateActiveCountBadge();
+            renderManageList();
+        }
+
+        function saveHistoryData() {
+            try {
+                localStorage.setItem('today_food_history_v5', JSON.stringify(randomHistory));
+            } catch(e) {}
+            renderHistory();
+        }
+
+        function resetDefaultMenu() {
+            menuDatabase = JSON.parse(JSON.stringify(DEFAULT_DATABASE));
+            saveDatabase();
+            showToast("คืนค่าเมนูเริ่มต้นทั้งหมดเรียบร้อยแล้ว", "success");
+        }
+
+        function renderSubCategoryChips() {
+            const container = document.getElementById('subCategoryChipContainer');
+            const titleEl = document.getElementById('subCatTitle');
+            if (!container) return;
+
+            let activeSubList = [];
+            let activeMajorKey = currentMode === 'combo' ? 'food' : currentMode;
+
+            if (currentMode === 'combo') {
+                if (titleEl) {
+                    titleEl.className = "text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-orange-900";
+                    titleEl.innerHTML = `<i class="fas fa-layer-group text-orange-500"></i> หมวดย่อยสำหรับสุ่มครบเซ็ต (อาหาร + น้ำ + ขนม)`;
+                }
+                // Show sub-categories from all 3 major categories in combo mode
+                activeSubList = [
+                    ...SUB_CATEGORIES.food,
+                    ...SUB_CATEGORIES.drink,
+                    ...SUB_CATEGORIES.dessert
+                ];
+            } else {
+                const majorInfo = MAJOR_TYPES[activeMajorKey];
+                if (titleEl) {
+                    titleEl.className = `text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-${majorInfo.color}-900`;
+                    titleEl.innerHTML = `<i class="fas fa-utensils text-${majorInfo.color}-500"></i> หมวดย่อยเฉพาะหมวด${majorInfo.name}ที่ต้องการสุ่ม`;
+                }
+                activeSubList = SUB_CATEGORIES[activeMajorKey] || [];
+            }
+
+            container.innerHTML = activeSubList.map(sub => {
+                let majorKey = currentMode;
+                if (currentMode === 'combo') {
+                    if (sub.id.startsWith('food_')) majorKey = 'food';
+                    else if (sub.id.startsWith('drink_')) majorKey = 'drink';
+                    else if (sub.id.startsWith('dessert_')) majorKey = 'dessert';
+                }
+
+                const isSelected = selectedSubCats[majorKey].includes(sub.id);
+                
+                let activeBtnStyle = "bg-slate-50 text-slate-600 hover:bg-orange-50 border-slate-200";
+                if (isSelected) {
+                    if (majorKey === 'food') activeBtnStyle = "bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold shadow-sm border-orange-500";
+                    else if (majorKey === 'drink') activeBtnStyle = "bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold shadow-sm border-emerald-500";
+                    else if (majorKey === 'dessert') activeBtnStyle = "bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold shadow-sm border-pink-500";
+                }
+
+                return `
+                    <button onclick="toggleSubCategory('${majorKey}', '${sub.id}')" class="px-3.5 py-2 rounded-2xl text-xs transition-all flex items-center gap-1.5 border ${activeBtnStyle}">
+                        <span>${sub.emoji}</span>
+                        <span>${sub.name}</span>
+                        ${isSelected ? '<i class="fas fa-check text-[10px] ml-0.5"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            updateActiveCountBadge();
+        }
+
+        function toggleSubCategory(majorKey, subId) {
+            const currentList = selectedSubCats[majorKey];
+            if (currentList.includes(subId)) {
+                if (currentList.length === 1) {
+                    showToast(`ต้องเลือกอย่างน้อย 1 หมวดย่อยสำหรับ${MAJOR_TYPES[majorKey].name}ครับ`, "warning");
+                    return;
+                }
+                selectedSubCats[majorKey] = currentList.filter(id => id !== subId);
+            } else {
+                selectedSubCats[majorKey].push(subId);
+            }
+            renderSubCategoryChips();
+        }
+
+        function selectAllActiveSubCats() {
+            if (currentMode === 'combo') {
+                selectedSubCats.food = SUB_CATEGORIES.food.map(s => s.id);
+                selectedSubCats.drink = SUB_CATEGORIES.drink.map(s => s.id);
+                selectedSubCats.dessert = SUB_CATEGORIES.dessert.map(s => s.id);
+            } else {
+                selectedSubCats[currentMode] = SUB_CATEGORIES[currentMode].map(s => s.id);
+            }
+            renderSubCategoryChips();
+            showToast("เลือกหมวดย่อยทั้งหมดเรียบร้อยแล้ว");
+        }
+
+        function clearAllActiveSubCats() {
+            if (currentMode === 'combo') {
+                selectedSubCats.food = [SUB_CATEGORIES.food[0].id];
+                selectedSubCats.drink = [SUB_CATEGORIES.drink[0].id];
+                selectedSubCats.dessert = [SUB_CATEGORIES.dessert[0].id];
+            } else {
+                selectedSubCats[currentMode] = [SUB_CATEGORIES[currentMode][0].id];
+            }
+            renderSubCategoryChips();
+            showToast("ล้างเหลือหมวดย่อยแรกแล้ว");
+        }
+
+        function updateActiveCountBadge() {
+            const badge = document.getElementById('activeCountBadge');
+            if (!badge) return;
+
+            if (currentMode === 'combo') {
+                const fPool = getFilteredPool('food');
+                const dPool = getFilteredPool('drink');
+                const desPool = getFilteredPool('dessert');
+                badge.textContent = `พร้อมสุ่ม (อาหาร ${fPool.length} | น้ำ ${dPool.length} | ขนม ${desPool.length})`;
+            } else {
+                const pool = getFilteredPool(currentMode);
+                const activeCount = selectedSubCats[currentMode].length;
+                const totalCount = SUB_CATEGORIES[currentMode].length;
+                badge.textContent = `พร้อมสุ่ม ${pool.length} เมนู (${activeCount}/${totalCount} หมวดย่อย)`;
+            }
+        }
+
+        function getFilteredPool(majorKey) {
+            const activeSubIds = selectedSubCats[majorKey] || [];
+            return menuDatabase.filter(item => {
+                if (item.enabled === false) return false;
+                if (item.majorType !== majorKey) return false;
+                return activeSubIds.includes(item.subCategory);
+            });
+        }
+
+        function setMode(mode) {
+            if (isSpinning) return;
+            currentMode = mode;
+
+            const modeBtnFood = document.getElementById('modeBtnFood');
+            const modeBtnDrink = document.getElementById('modeBtnDrink');
+            const modeBtnDessert = document.getElementById('modeBtnDessert');
+            const modeBtnCombo = document.getElementById('modeBtnCombo');
+
+            const mainSlotCard = document.getElementById('mainSlotCard');
+            const drinkSlotCard = document.getElementById('drinkSlotCard');
+            const dessertSlotCard = document.getElementById('dessertSlotCard');
+            const slotGridContainer = document.getElementById('slotGridContainer');
+
+            const slot1Badge = document.getElementById('slot1Badge');
+            const mainSlotBlurBg = document.getElementById('mainSlotBlurBg');
+
+            const activeBtnFoodClass = "bg-orange-500 text-white border-orange-500 shadow-orange-200 font-bold";
+            const activeBtnDrinkClass = "bg-emerald-500 text-white border-emerald-500 shadow-emerald-200 font-bold";
+            const activeBtnDessertClass = "bg-pink-500 text-white border-pink-500 shadow-pink-200 font-bold";
+            const activeBtnComboClass = "bg-amber-500 text-white border-amber-500 shadow-amber-200 font-bold";
+            const inactiveBtnClass = "bg-white text-slate-700 border-slate-200 hover:bg-slate-50";
+
+            if (modeBtnFood) modeBtnFood.className = `px-4 py-2.5 rounded-2xl text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 border ${mode === 'food' ? activeBtnFoodClass : inactiveBtnClass}`;
+            if (modeBtnDrink) modeBtnDrink.className = `px-4 py-2.5 rounded-2xl text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 border ${mode === 'drink' ? activeBtnDrinkClass : inactiveBtnClass}`;
+            if (modeBtnDessert) modeBtnDessert.className = `px-4 py-2.5 rounded-2xl text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 border ${mode === 'dessert' ? activeBtnDessertClass : inactiveBtnClass}`;
+            if (modeBtnCombo) modeBtnCombo.className = `px-4 py-2.5 rounded-2xl text-xs sm:text-sm transition-all shadow-sm flex items-center gap-2 border ${mode === 'combo' ? activeBtnComboClass : inactiveBtnClass}`;
+
+            if (mode === 'combo') {
+                if (slotGridContainer) slotGridContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-4 w-full";
+                if (mainSlotCard) mainSlotCard.className = "gradient-card-food rounded-3xl p-6 shadow-xl shadow-orange-100/80 border-2 border-orange-200 relative overflow-hidden flex flex-col items-center text-center transition-all duration-300";
+                if (drinkSlotCard) {
+                    drinkSlotCard.classList.remove('hidden');
+                    drinkSlotCard.classList.add('flex');
+                }
+                if (dessertSlotCard) {
+                    dessertSlotCard.classList.remove('hidden');
+                    dessertSlotCard.classList.add('flex');
+                }
+                if (slot1Badge) slot1Badge.textContent = "🍳 อาหารจานหลัก";
+                if (mainSlotBlurBg) mainSlotBlurBg.className = "absolute -top-10 -right-10 w-32 h-32 bg-amber-200/40 rounded-full blur-2xl pointer-events-none";
+                
+                resetSlot1Display('food');
+            } else {
+                if (slotGridContainer) slotGridContainer.className = "grid grid-cols-1 gap-4 w-full max-w-2xl mx-auto";
+                if (drinkSlotCard) drinkSlotCard.classList.add('hidden');
+                if (dessertSlotCard) dessertSlotCard.classList.add('hidden');
+
+                if (mode === 'food') {
+                    if (mainSlotCard) mainSlotCard.className = "gradient-card-food rounded-3xl p-6 sm:p-8 shadow-xl shadow-orange-100/80 border-2 border-orange-200 relative overflow-hidden flex flex-col items-center text-center transition-all duration-300";
+                    if (slot1Badge) slot1Badge.textContent = "🍳 อาหารจานหลัก";
+                    if (mainSlotBlurBg) mainSlotBlurBg.className = "absolute -top-10 -right-10 w-32 h-32 bg-amber-200/40 rounded-full blur-2xl pointer-events-none";
+                } else if (mode === 'drink') {
+                    if (mainSlotCard) mainSlotCard.className = "gradient-card-drink rounded-3xl p-6 sm:p-8 shadow-xl shadow-emerald-100/80 border-2 border-emerald-200 relative overflow-hidden flex flex-col items-center text-center transition-all duration-300";
+                    if (slot1Badge) slot1Badge.textContent = "🥤 เครื่องดื่มดับกระหาย";
+                    if (mainSlotBlurBg) mainSlotBlurBg.className = "absolute -top-10 -right-10 w-32 h-32 bg-emerald-200/40 rounded-full blur-2xl pointer-events-none";
+                } else if (mode === 'dessert') {
+                    if (mainSlotCard) mainSlotCard.className = "gradient-card-dessert rounded-3xl p-6 sm:p-8 shadow-xl shadow-pink-100/80 border-2 border-pink-200 relative overflow-hidden flex flex-col items-center text-center transition-all duration-300";
+                    if (slot1Badge) slot1Badge.textContent = "🍨 ขนมหวานล้างปาก";
+                    if (mainSlotBlurBg) mainSlotBlurBg.className = "absolute -top-10 -right-10 w-32 h-32 bg-pink-200/40 rounded-full blur-2xl pointer-events-none";
+                }
+
+                resetSlot1Display(mode);
+            }
+
+            renderSubCategoryChips();
+        }
+
+        function resetSlot1Display(type) {
+            const emojiEl = document.getElementById('slot1Emoji');
+            const titleEl = document.getElementById('slot1Title');
+            const descEl = document.getElementById('slot1Description');
+            const mapBox = document.getElementById('slot1MapBox');
+
+            if (mapBox) mapBox.classList.add('hidden');
+
+            if (type === 'food') {
+                if (emojiEl) emojiEl.textContent = '😋';
+                if (titleEl) titleEl.textContent = 'มื้อนี้กินอะไรดีนะ?';
+                if (descEl) descEl.textContent = 'เลือกหมวดย่อยที่ต้องการแล้วกดปุ่ม "สุ่มเมนูเลย!"';
+            } else if (type === 'drink') {
+                if (emojiEl) emojiEl.textContent = '🥤';
+                if (titleEl) titleEl.textContent = 'ดื่มอะไรสดชื่นดี?';
+                if (descEl) descEl.textContent = 'เลือกหมวดย่อยที่ต้องการแล้วกดปุ่ม "สุ่มเมนูเลย!"';
+            } else if (type === 'dessert') {
+                if (emojiEl) emojiEl.textContent = '🍨';
+                if (titleEl) titleEl.textContent = 'ของหวานล้างปากอะไรดี?';
+                if (descEl) descEl.textContent = 'เลือกหมวดย่อยที่ต้องการแล้วกดปุ่ม "สุ่มเมนูเลย!"';
+            }
+        }
+
+        function startRandomizer() {
+            if (isSpinning) return;
+
+            let pool1 = [];
+            let pool2 = [];
+            let pool3 = [];
+
+            if (currentMode === 'combo') {
+                pool1 = getFilteredPool('food');
+                pool2 = getFilteredPool('drink');
+                pool3 = getFilteredPool('dessert');
+
+                if (pool1.length === 0 || pool2.length === 0 || pool3.length === 0) {
+                    showToast("กรุณาเลือกเปิดหมวดย่อยให้ครบทุกหมวดในเซ็ตนะครับ", "warning");
+                    return;
+                }
+            } else {
+                pool1 = getFilteredPool(currentMode);
+                if (pool1.length === 0) {
+                    showToast(`ไม่พบเมนูในหมวดย่อยที่เลือกของ ${MAJOR_TYPES[currentMode].name}`, "warning");
+                    return;
+                }
+            }
+
+            isSpinning = true;
+
+            const spinBtn = document.getElementById('spinBtn');
+            const spinIcon = document.getElementById('spinBtnIcon');
+            const spinText = document.getElementById('spinBtnText');
+            const actionGroup = document.getElementById('resultActionGroup');
+
+            if (actionGroup) {
+                actionGroup.classList.add('hidden');
+                actionGroup.classList.remove('flex');
+            }
+            if (spinBtn) spinBtn.disabled = true;
+            if (spinIcon) spinIcon.className = "fas fa-spinner fa-spin text-2xl";
+            if (spinText) spinText.textContent = "กำลังสุ่มเมนู...";
+
+            const slot1CardInner = document.getElementById('slot1CardInner');
+            const drinkCardInner = document.getElementById('drinkCardInner');
+            const dessertCardInner = document.getElementById('dessertCardInner');
+
+            if (slot1CardInner) slot1CardInner.classList.add('spin-blur');
+            if (currentMode === 'combo') {
+                if (drinkCardInner) drinkCardInner.classList.add('spin-blur');
+                if (dessertCardInner) dessertCardInner.classList.add('spin-blur');
+            }
+
+            let duration = 2000;
+            let intervalTime = 70;
+            let elapsed = 0;
+
+            const timer = setInterval(() => {
+                elapsed += intervalTime;
+                playBeepSound();
+
+                if (pool1.length > 0) {
+                    const randomItem = pool1[Math.floor(Math.random() * pool1.length)];
+                    updateSlotDisplay('slot1', randomItem);
+                }
+
+                if (currentMode === 'combo') {
+                    if (pool2.length > 0) {
+                        const randomDrink = pool2[Math.floor(Math.random() * pool2.length)];
+                        updateSlotDisplay('drink', randomDrink);
+                    }
+                    if (pool3.length > 0) {
+                        const randomDessert = pool3[Math.floor(Math.random() * pool3.length)];
+                        updateSlotDisplay('dessert', randomDessert);
+                    }
+                }
+
+                if (elapsed >= duration) {
+                    clearInterval(timer);
+                    finishSpin(pool1, pool2, pool3);
+                }
+            }, intervalTime);
+        }
+
+        function finishSpin(pool1, pool2, pool3) {
+            isSpinning = false;
+
+            const slot1CardInner = document.getElementById('slot1CardInner');
+            const drinkCardInner = document.getElementById('drinkCardInner');
+            const dessertCardInner = document.getElementById('dessertCardInner');
+
+            if (slot1CardInner) slot1CardInner.classList.remove('spin-blur');
+            if (drinkCardInner) drinkCardInner.classList.remove('spin-blur');
+            if (dessertCardInner) dessertCardInner.classList.remove('spin-blur');
+
+            const spinBtn = document.getElementById('spinBtn');
+            const spinIcon = document.getElementById('spinBtnIcon');
+            const spinText = document.getElementById('spinBtnText');
+            const actionGroup = document.getElementById('resultActionGroup');
+
+            if (spinBtn) spinBtn.disabled = false;
+            if (spinIcon) spinIcon.className = "fas fa-dice text-2xl";
+            if (spinText) spinText.textContent = "สุ่มเมนูเลย!";
+
+            if (actionGroup) {
+                actionGroup.classList.remove('hidden');
+                actionGroup.classList.add('flex');
+            }
+
+            // Final Picks
+            const final1 = pool1[Math.floor(Math.random() * pool1.length)];
+            let final2 = null;
+            let final3 = null;
+
+            updateSlotDisplay('slot1', final1, true);
+
+            if (currentMode === 'combo') {
+                final2 = pool2[Math.floor(Math.random() * pool2.length)];
+                final3 = pool3[Math.floor(Math.random() * pool3.length)];
+                updateSlotDisplay('drink', final2, true);
+                updateSlotDisplay('dessert', final3, true);
+            }
+
+            playWinFanfare();
+            triggerConfetti();
+
+            // Record History
+            addHistoryRecord(final1, final2, final3);
+        }
+
+        function updateSlotDisplay(slotPrefix, item, isFinal = false) {
+            const emojiEl = document.getElementById(`${slotPrefix}Emoji`);
+            const titleEl = document.getElementById(`${slotPrefix}Title`);
+            const descEl = document.getElementById(`${slotPrefix}Description`);
+            const mapBox = document.getElementById(`${slotPrefix}MapBox`);
+            const mapBtn = document.getElementById(`${slotPrefix}MapBtn`);
+            const mapText = document.getElementById(`${slotPrefix}MapText`);
+
+            if (emojiEl) emojiEl.textContent = item.emoji || '🍱';
+            if (titleEl) titleEl.textContent = item.title;
+            if (descEl) descEl.textContent = item.tag || getSubCategoryName(item.majorType, item.subCategory);
+
+            if (isFinal && mapBox && mapBtn) {
+                const query = encodeURIComponent(`${item.title} ร้านใกล้ฉัน`);
+                mapBtn.href = `https://www.google.com/maps/search/?api=1&query=${query}`;
+                if (mapText) mapText.textContent = `ค้นหา "${item.title}" บน Maps`;
+                mapBox.classList.remove('hidden');
+            }
+        }
+
+        function getSubCategoryName(majorType, subCategory) {
+            const subList = SUB_CATEGORIES[majorType] || [];
+            const found = subList.find(s => s.id === subCategory);
+            return found ? found.name : '';
+        }
+
+        function quickSelectComboAndSpin() {
+            if (isSpinning) return;
+            setMode('combo');
+            selectAllActiveSubCats();
+            setTimeout(() => {
+                startRandomizer();
+            }, 100);
+        }
+
+        function confirmChoice() {
+            const title1 = document.getElementById('slot1Title')?.textContent || '';
+            showToast(`ตกลงเลือก "${title1}" ขอให้เป็นมื้อที่อร่อยนะครับ! 😋`, 'success');
+            triggerConfetti();
+        }
+
+        function addHistoryRecord(item1, item2, item3) {
+            const record = {
+                id: Date.now(),
+                title1: item1.title,
+                emoji1: item1.emoji,
+                title2: item2 ? item2.title : null,
+                emoji2: item2 ? item2.emoji : null,
+                title3: item3 ? item3.title : null,
+                emoji3: item3 ? item3.emoji : null,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            randomHistory.unshift(record);
+            if (randomHistory.length > 6) randomHistory.pop();
+            saveHistoryData();
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('historyList');
+            if (!container) return;
+
+            if (randomHistory.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 italic">ยังไม่มีประวัติการสุ่ม</span>`;
+                return;
+            }
+
+            container.innerHTML = randomHistory.map(item => {
+                return `
+                    <div class="px-3 py-1.5 rounded-xl bg-orange-50 border border-orange-100 text-xs flex flex-wrap items-center gap-1.5 shadow-sm">
+                        <span>${item.emoji1} ${item.title1}</span>
+                        ${item.title2 ? `<span class="text-slate-400">+</span><span>${item.emoji2} ${item.title2}</span>` : ''}
+                        ${item.title3 ? `<span class="text-slate-400">+</span><span>${item.emoji3} ${item.title3}</span>` : ''}
+                        <span class="text-[10px] text-slate-400 ml-1">(${item.time})</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearHistory() {
+            randomHistory = [];
+            saveHistoryData();
+            showToast("ล้างประวัติการสุ่มเรียบร้อยแล้ว");
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 65,
+                    spread: 75,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            if (!toast || !toastMsg) return;
+
+            toastMsg.textContent = msg;
+
+            if (type === 'success') toastIcon.className = "fas fa-check-circle text-emerald-400 text-lg";
+            else if (type === 'warning') toastIcon.className = "fas fa-exclamation-triangle text-amber-400 text-lg";
+            else toastIcon.className = "fas fa-info-circle text-blue-400 text-lg";
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 2500);
+        }
+
+        function openManageModal() {
+            manageMajorType = currentMode === 'combo' ? 'food' : currentMode;
+            manageSubCategoryFilter = 'ALL';
+            renderManageMajorTypeTabs();
+            renderManageSubCategoryTabs();
+            renderNewSubCategoryOptions();
+            renderManageList();
+
+            const modal = document.getElementById('manageModal');
+            const card = document.getElementById('manageModalCard');
+            if (modal) modal.classList.remove('pointer-events-none', 'opacity-0');
+            if (card) card.classList.remove('scale-95');
+        }
+
+        function closeManageModal() {
+            const modal = document.getElementById('manageModal');
+            const card = document.getElementById('manageModalCard');
+            if (card) card.classList.add('scale-95');
+            if (modal) modal.classList.add('pointer-events-none', 'opacity-0');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeManageModal();
+        });
+
+        function setAddMenuMajorType(type) {
+            addMenuMajorType = type;
+            const foodBtn = document.getElementById('addTypeFoodBtn');
+            const drinkBtn = document.getElementById('addTypeDrinkBtn');
+            const dessertBtn = document.getElementById('addTypeDessertBtn');
+
+            const activeBtnFoodClass = "bg-orange-500 text-white border-orange-500 shadow-sm font-semibold";
+            const activeBtnDrinkClass = "bg-emerald-500 text-white border-emerald-500 shadow-sm font-semibold";
+            const activeBtnDessertClass = "bg-pink-500 text-white border-pink-500 shadow-sm font-semibold";
+            const inactiveBtnClass = "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 font-normal";
+
+            if (foodBtn) foodBtn.className = `flex-1 py-1.5 px-2.5 rounded-xl border text-xs transition flex items-center justify-center gap-1 ${type === 'food' ? activeBtnFoodClass : inactiveBtnClass}`;
+            if (drinkBtn) drinkBtn.className = `flex-1 py-1.5 px-2.5 rounded-xl border text-xs transition flex items-center justify-center gap-1 ${type === 'drink' ? activeBtnDrinkClass : inactiveBtnClass}`;
+            if (dessertBtn) dessertBtn.className = `flex-1 py-1.5 px-2.5 rounded-xl border text-xs transition flex items-center justify-center gap-1 ${type === 'dessert' ? activeBtnDessertClass : inactiveBtnClass}`;
+
+            renderNewSubCategoryOptions();
+        }
+
+        function renderNewSubCategoryOptions() {
+            const select = document.getElementById('newSubCategorySelect');
+            if (!select) return;
+
+            const subList = SUB_CATEGORIES[addMenuMajorType] || [];
+            select.innerHTML = subList.map(sub => `
+                <option value="${sub.id}">${sub.emoji} ${sub.name}</option>
+            `).join('');
+        }
+
+        function handleAddNewMenu(event) {
+            event.preventDefault();
+            const titleInput = document.getElementById('newTitle');
+            const subCategorySelect = document.getElementById('newSubCategorySelect');
+            const emojiInput = document.getElementById('newEmoji');
+            const tagInput = document.getElementById('newTag');
+
+            const title = titleInput ? titleInput.value.trim() : '';
+            const subCategory = subCategorySelect ? subCategorySelect.value : '';
+            const emoji = (emojiInput && emojiInput.value.trim()) ? emojiInput.value.trim() : (addMenuMajorType === 'food' ? '🍱' : addMenuMajorType === 'drink' ? '🥤' : '🍨');
+            const tag = tagInput ? tagInput.value.trim() : '';
+
+            if (!title) return;
+
+            const newItem = {
+                id: 'custom_' + Date.now(),
+                majorType: addMenuMajorType,
+                subCategory: subCategory,
+                title: title,
+                emoji: emoji,
+                tag: tag || 'เมนูที่เพิ่มเอง',
+                enabled: true
+            };
+
+            menuDatabase.unshift(newItem);
+            saveDatabase();
+
+            if (titleInput) titleInput.value = '';
+            if (emojiInput) emojiInput.value = '';
+            if (tagInput) tagInput.value = '';
+
+            showToast(`เพิ่มเมนู "${title}" เรียบร้อยแล้ว`, "success");
+        }
+
+        function setManageMajorType(type) {
+            manageMajorType = type;
+            manageSubCategoryFilter = 'ALL';
+            renderManageMajorTypeTabs();
+            renderManageSubCategoryTabs();
+            renderManageList();
+        }
+
+        function renderManageMajorTypeTabs() {
+            const container = document.getElementById('manageMajorTypeTabs');
+            if (!container) return;
+
+            const tabs = [
+                { id: 'all', name: 'ทั้งหมด', emoji: '✨' },
+                { id: 'food', name: 'อาหาร', emoji: '🍽️' },
+                { id: 'drink', name: 'เครื่องดื่ม', emoji: '🥤' },
+                { id: 'dessert', name: 'ขนมหวาน', emoji: '🍨' }
+            ];
+
+            container.innerHTML = tabs.map(t => {
+                const isActive = manageMajorType === t.id;
+                const activeClass = isActive 
+                    ? 'bg-white text-orange-600 font-bold shadow-sm' 
+                    : 'text-slate-600 hover:text-slate-900 font-medium';
+
+                return `
+                    <button onclick="setManageMajorType('${t.id}')" class="flex-1 py-1.5 px-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1 ${activeClass}">
+                        <span>${t.emoji}</span>
+                        <span>${t.name}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderManageSubCategoryTabs() {
+            const container = document.getElementById('manageSubCategoryTabs');
+            if (!container) return;
+
+            let subTabs = [];
+            if (manageMajorType === 'all') {
+                subTabs = [
+                    { id: 'ALL', name: 'หมวดย่อยทั้งหมด', emoji: '✨' },
+                    ...SUB_CATEGORIES.food,
+                    ...SUB_CATEGORIES.drink,
+                    ...SUB_CATEGORIES.dessert
+                ];
+            } else {
+                subTabs = [
+                    { id: 'ALL', name: `หมวดย่อย${MAJOR_TYPES[manageMajorType].name}ทั้งหมด`, emoji: '✨' },
+                    ...SUB_CATEGORIES[manageMajorType]
+                ];
+            }
+
+            container.innerHTML = subTabs.map(tab => {
+                const isActive = manageSubCategoryFilter === tab.id;
+                const activeClasses = isActive 
+                    ? 'bg-orange-500 text-white font-semibold shadow-sm' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+
+                return `
+                    <button onclick="setManageSubCategoryFilter('${tab.id}')" class="px-3 py-1.5 rounded-xl whitespace-nowrap text-xs transition flex items-center gap-1 shrink-0 ${activeClasses}">
+                        <span>${tab.emoji}</span>
+                        <span>${tab.name}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function setManageSubCategoryFilter(subId) {
+            manageSubCategoryFilter = subId;
+            renderManageSubCategoryTabs();
+            renderManageList();
+        }
+
+        function renderManageList() {
+            const container = document.getElementById('manageMenuList');
+            if (!container) return;
+
+            const searchInput = document.getElementById('searchMenuInput');
+            const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+            let renderedHtml = '';
+            let totalMatchCount = 0;
+
+            const renderGroupHtml = (groupTitle, groupEmoji, items, subCatId) => {
+                if (items.length === 0) return '';
+                const activeCount = items.filter(i => i.enabled !== false).length;
+
+                return `
+                    <div class="bg-slate-50/80 rounded-2xl p-3 border border-slate-200/80 mb-3">
+                        <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">${groupEmoji}</span>
+                                <h4 class="font-bold text-slate-800 text-xs sm:text-sm">${groupTitle}</h4>
+                                <span class="text-[11px] bg-orange-100 text-orange-800 font-medium px-2 py-0.5 rounded-full">
+                                    เปิดอยู่ ${activeCount}/${items.length}
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="toggleSubCategoryAllItems('${subCatId}', true)" class="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-800 px-2 py-1 rounded-lg transition font-medium">
+                                    เปิดหมวดนี้
+                                </button>
+                                <button onclick="toggleSubCategoryAllItems('${subCatId}', false)" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1 rounded-lg transition font-medium">
+                                    ปิดหมวดนี้
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            ${items.map(item => {
+                                const isEnabled = item.enabled !== false;
+                                return `
+                                    <div class="flex items-center justify-between p-2.5 rounded-xl border ${isEnabled ? 'bg-white border-slate-200' : 'bg-slate-100 border-slate-200 opacity-60'} transition">
+                                        <div class="flex items-center gap-2.5 min-w-0 pr-2">
+                                            <span class="text-xl shrink-0">${item.emoji}</span>
+                                            <div class="min-w-0">
+                                                <h5 class="font-bold text-slate-800 text-xs truncate">${item.title}</h5>
+                                                <p class="text-[10px] text-slate-500 truncate">${item.tag || getSubCategoryName(item.majorType, item.subCategory)}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <button onclick="toggleMenuItemStatus('${item.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-medium transition ${isEnabled ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}">
+                                                ${isEnabled ? 'เปิด' : 'ปิด'}
+                                            </button>
+                                            <button onclick="deleteMenuItem('${item.id}')" class="w-6 h-6 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-100 flex items-center justify-center text-[10px] transition" title="ลบรายการนี้">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            };
+
+            // Gather all relevant subcategories
+            let activeSubCategories = [];
+            if (manageMajorType === 'all') {
+                activeSubCategories = [...SUB_CATEGORIES.food, ...SUB_CATEGORIES.drink, ...SUB_CATEGORIES.dessert];
+            } else {
+                activeSubCategories = SUB_CATEGORIES[manageMajorType] || [];
+            }
+
+            activeSubCategories.forEach(sub => {
+                if (manageSubCategoryFilter !== 'ALL' && manageSubCategoryFilter !== sub.id) return;
+
+                const itemsInSub = menuDatabase.filter(item => {
+                    if (item.subCategory !== sub.id) return false;
+                    const itemTag = item.tag || '';
+                    const matchSearch = !searchQuery || 
+                                       item.title.toLowerCase().includes(searchQuery) ||
+                                       itemTag.toLowerCase().includes(searchQuery);
+                    return matchSearch;
+                });
+
+                if (itemsInSub.length > 0) {
+                    totalMatchCount += itemsInSub.length;
+                    renderedHtml += renderGroupHtml(sub.name, sub.emoji, itemsInSub, sub.id);
+                }
+            });
+
+            if (totalMatchCount === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">ไม่พบเมนูที่ตรงกับคำค้นหาในหมวดนี้</div>`;
+            } else {
+                container.innerHTML = renderedHtml;
+            }
+        }
+
+        function toggleSubCategoryAllItems(subCatId, enableState) {
+            menuDatabase.forEach(item => {
+                if (item.subCategory === subCatId) {
+                    item.enabled = enableState;
+                }
+            });
+            saveDatabase();
+            showToast(`${enableState ? 'เปิด' : 'ปิด'}รายการในหมวดย่อยนี้เรียบร้อยแล้ว`, 'info');
+        }
+
+        function toggleMenuItemStatus(itemId) {
+            const item = menuDatabase.find(i => i.id === itemId);
+            if (item) {
+                item.enabled = item.enabled === false ? true : false;
+                saveDatabase();
+            }
+        }
+
+        function deleteMenuItem(itemId) {
+            menuDatabase = menuDatabase.filter(i => i.id !== itemId);
+            saveDatabase();
+            showToast("ลบรายการเรียบร้อยแล้ว", "info");
+        }
+
+        // Initialize application on load
+        window.onload = function() {
+            loadDatabase();
+            setMode('food');
+            renderHistory();
+        };
+    </script>
+</body>
+</html>
